@@ -87,8 +87,43 @@ Test card `4242 4242 4242 4242`, any future expiry, any CVC.
 - [API reference](docs/API.md)
 - [System design + scaling](docs/SYSTEM_DESIGN.md)
 
+## Deployment
+
+| Piece | Platform | Notes |
+|---|---|---|
+| Frontend | Vercel | root `frontend/`, build `npm run build`, output `dist`. `vercel.json` rewrites all routes to `index.html` for react-router |
+| Backend | Render web service | root `backend/`, build `pip install uv && uv sync`, start `uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| Database | MongoDB Atlas M0 | network access open, user with readWrite |
+| Stripe webhook | Stripe dashboard → Webhooks | endpoint `https://<backend>/payments/webhook`, events `checkout.session.completed`, `checkout.session.expired` |
+| Google OAuth | Cloud Console | add Vercel URL to Authorized JavaScript origins |
+
+See [docs/SYSTEM_DESIGN.md](docs/SYSTEM_DESIGN.md) for the AWS equivalent and scaling plan.
+
+## Deliverables map (per assignment brief)
+
+| Asked | Where |
+|---|---|
+| GitHub repository | this repo |
+| Live/demo URL | top of this README |
+| README | this file |
+| Database schema | [docs/SCHEMA.md](docs/SCHEMA.md) |
+| Basic API documentation | [docs/API.md](docs/API.md) + live Swagger at `/docs` |
+| One-page system design | [docs/SYSTEM_DESIGN.md](docs/SYSTEM_DESIGN.md) |
+| Total time taken | below |
+| AI tools used | below |
+
 ## AI tools used
-- **Claude Code** (Opus) — scaffolding, boilerplate for routers/components, doc drafts. All architecture decisions, business rules, and review were done by me; code kept deliberately small and plain so every file can be explained.
+
+**Claude Code** (Anthropic, Opus model) inside the terminal.
+
+How it was used:
+- Scaffolding: Vite/shadcn setup, FastAPI project layout, boilerplate routers and page components.
+- Drafting docs (schema, API table, system design) from the code I had written/reviewed.
+- Debugging: e.g. shadcn's newer Base UI `render` prop vs `asChild`, Gemini model rename.
+- Running smoke tests against the API (curl scripts for RBAC/stock checks).
+
+What was done manually: architecture and stack decisions, business rules (stock decrement on webhook, price snapshot in orders, per-user agent tools), all third-party account setup, end-to-end testing of Google login, Stripe checkout, webhook and the chat agent. Code was intentionally kept small and plain so every file can be explained.
 
 ## Time taken
-_TODO — see final tally_
+
+_~6 hours_ (planning, backend, frontend, integrations, docs, deploy). Detailed log kept during work.
