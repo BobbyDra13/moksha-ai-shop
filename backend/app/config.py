@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     currency: str = "usd"  # inr needs an India-registered Stripe account
 
     gemini_api_key: str = ""
+    gemini_model: str = "gemini-3.6-flash"
 
     frontend_url: str = "http://localhost:5173"
 
