@@ -57,6 +57,7 @@ Test card `4242 4242 4242 4242`, any future expiry, any CVC.
 | ADMIN_EMAILS | comma list; these become admins on first login |
 | STRIPE_SECRET_KEY | `sk_test_...` |
 | STRIPE_WEBHOOK_SECRET | `whsec_...` |
+| CURRENCY | `usd` default. `inr` needs India Stripe account |
 | GEMINI_API_KEY | from AI Studio |
 | FRONTEND_URL | for CORS + Stripe redirects |
 

@@ -15,7 +15,7 @@ from app.models.common import to_object_id
 
 SYSTEM_PROMPT = """You are a friendly support assistant for Moksha Mini Shop.
 Always use the tools to look up real product and order data. Never guess prices or stock.
-If you cannot find something, say so clearly. Keep answers short. Prices are in INR (₹)."""
+If you cannot find something, say so clearly. Keep answers short. Prices are in USD ($)."""
 
 
 def _make_tools(user_id: ObjectId | None):
@@ -28,7 +28,7 @@ def _make_tools(user_id: ObjectId | None):
         if not docs:
             return "No products available right now."
         lines = [
-            f"- {d['name']}: ₹{d['price']} ({'in stock: ' + str(d['stock']) if d['stock'] > 0 else 'out of stock'})"
+            f"- {d['name']}: ${d['price']} ({'in stock: ' + str(d['stock']) if d['stock'] > 0 else 'out of stock'})"
             for d in docs
         ]
         return "\n".join(lines)
@@ -40,7 +40,7 @@ def _make_tools(user_id: ObjectId | None):
         if doc is None:
             return f"No product matching '{name}'."
         return (
-            f"{doc['name']} — ₹{doc['price']}. Stock: {doc['stock']}. "
+            f"{doc['name']} — ${doc['price']}. Stock: {doc['stock']}. "
             f"{doc.get('description', '')}"
         )
 
@@ -55,7 +55,7 @@ def _make_tools(user_id: ObjectId | None):
         lines = []
         for d in docs:
             items = ", ".join(f"{i['name']} x{i['quantity']}" for i in d["items"])
-            lines.append(f"- Order {d['_id']}: {d['status']}, ₹{d['total']} ({items})")
+            lines.append(f"- Order {d['_id']}: {d['status']}, ${d['total']} ({items})")
         return "\n".join(lines)
 
     @tool
@@ -70,7 +70,7 @@ def _make_tools(user_id: ObjectId | None):
         doc = await orders.find_one({"_id": oid, "user_id": user_id})
         if doc is None:
             return "No such order for this customer."
-        return f"Order {order_id} is '{doc['status']}'. Total ₹{doc['total']}."
+        return f"Order {order_id} is '{doc['status']}'. Total ${doc['total']}."
 
     return [list_products, get_product_info, get_my_orders, get_order_status]
 

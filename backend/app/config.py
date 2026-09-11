@@ -15,6 +15,7 @@ class Settings(BaseSettings):
 
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
+    currency: str = "usd"  # inr needs an India-registered Stripe account
 
     gemini_api_key: str = ""
 

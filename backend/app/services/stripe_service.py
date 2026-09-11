@@ -10,7 +10,7 @@ def create_checkout_session(order: dict) -> stripe.checkout.Session:
     line_items = [
         {
             "price_data": {
-                "currency": "inr",
+                "currency": settings.currency,
                 "product_data": {"name": item["name"]},
                 "unit_amount": int(round(item["price"] * 100)),
             },

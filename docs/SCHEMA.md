@@ -19,7 +19,7 @@ Database: `moksha_shop`. Three collections.
 | _id | ObjectId | |
 | name | string | |
 | description | string | |
-| price | number | INR |
+| price | number | USD (set CURRENCY env) |
 | image | string | URL |
 | stock | int | >= 0. Decremented when order becomes `paid` |
 | category | string | |

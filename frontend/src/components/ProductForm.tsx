@@ -68,7 +68,7 @@ export function ProductForm({ product, onClose, onSaved }: Props) {
             />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Price (INR)">
+            <Field label="Price (USD)">
               <Input
                 type="number"
                 min={1}

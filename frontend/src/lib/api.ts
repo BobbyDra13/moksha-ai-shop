@@ -40,5 +40,5 @@ export const api = {
 }
 
 export function formatPrice(n: number) {
-  return `₹${n.toLocaleString("en-IN")}`
+  return `$${n.toLocaleString("en-US")}`
 }
