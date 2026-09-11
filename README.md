@@ -2,7 +2,9 @@
 
 Small e-commerce app: Google sign-in, product catalogue, cart, Stripe test checkout, order history, admin panel, and an AI support agent grounded in real product/order data.
 
-**Live:** _TODO frontend URL_ · **API:** _TODO backend URL_
+**Live:** https://moksha-ai-shop.vercel.app · **API:** https://moksha-ai-shop-api.onrender.com (Swagger: [/docs](https://moksha-ai-shop-api.onrender.com/docs))
+
+> Backend runs on Render free tier — first request after idle may take ~30-50s to wake.
 
 ## Stack
 - Frontend: React 19, TypeScript, Vite, Tailwind v4, shadcn/ui, react-router
