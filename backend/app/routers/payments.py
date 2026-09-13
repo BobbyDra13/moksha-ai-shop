@@ -35,7 +35,8 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(alias=
     except Exception:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid webhook signature")
 
-    session = event["data"]["object"]
+    # Newer stripe SDK objects are not dicts (no .get) -> convert once
+    session = event["data"]["object"].to_dict()
     # metadata can be None on some events (e.g. dashboard test events)
     order_id = (session.get("metadata") or {}).get("order_id")
     if not order_id:
