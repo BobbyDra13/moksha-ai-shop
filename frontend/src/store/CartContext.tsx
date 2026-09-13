@@ -1,7 +1,10 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react"
 import type { CartItem, Product } from "@/lib/types"
+import { useAuth } from "@/auth/AuthContext"
 
-const CART_KEY = "shop_cart"
+// One cart per account, plus a guest cart. Logging out switches to the guest cart,
+// so a shared browser never shows another person's items.
+const cartKey = (userId: string | null) => `shop_cart:${userId ?? "guest"}`
 
 interface CartState {
   items: CartItem[]
@@ -15,19 +18,48 @@ interface CartState {
 
 const CartContext = createContext<CartState | null>(null)
 
-function load(): CartItem[] {
+function load(key: string): CartItem[] {
   try {
-    return JSON.parse(localStorage.getItem(CART_KEY) ?? "[]")
+    return JSON.parse(localStorage.getItem(key) ?? "[]")
   } catch {
     return []
   }
 }
 
+function merge(a: CartItem[], b: CartItem[]): CartItem[] {
+  const out = [...a]
+  for (const item of b) {
+    const hit = out.find((i) => i.product.id === item.product.id)
+    if (hit) hit.quantity = Math.min(hit.quantity + item.quantity, item.product.stock)
+    else out.push(item)
+  }
+  return out
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(load)
+  const { user, loading } = useAuth()
+  const userId = user?.id ?? null
+  const [items, setItems] = useState<CartItem[]>(() => load(cartKey(null)))
+  const activeKey = useRef(cartKey(null))
+
+  // Switch carts when the signed-in user changes.
+  // Guest -> user: carry the guest cart into the account (merge), then empty the guest cart.
+  // User -> guest (logout): show the guest cart, leave the account cart stored for next login.
+  useEffect(() => {
+    if (loading) return
+    const nextKey = cartKey(userId)
+    if (nextKey === activeKey.current) return
+    let next = load(nextKey)
+    if (userId && activeKey.current === cartKey(null)) {
+      next = merge(next, load(cartKey(null)))
+      localStorage.removeItem(cartKey(null))
+    }
+    activeKey.current = nextKey
+    setItems(next)
+  }, [userId, loading])
 
   useEffect(() => {
-    localStorage.setItem(CART_KEY, JSON.stringify(items))
+    localStorage.setItem(activeKey.current, JSON.stringify(items))
   }, [items])
 
   function add(product: Product, qty = 1) {

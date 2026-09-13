@@ -87,6 +87,7 @@ Test card `4242 4242 4242 4242`, any future expiry, any CVC.
 - Stock is validated at order creation and decremented only when payment is confirmed (`paid`). `mark_paid` is idempotent.
 - Order items snapshot name + price, so later product edits do not alter history.
 - The chat agent's order tools are bound to the logged-in user id; it cannot read other users' orders.
+- Cart is stored per account (`shop_cart:<userId>`) plus a guest cart. Logging out switches to the guest cart; logging in merges the guest cart into the account cart. A shared browser never shows another person's items.
 
 ## Docs
 - [Database schema](docs/SCHEMA.md)
