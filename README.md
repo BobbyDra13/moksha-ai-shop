@@ -5,8 +5,9 @@ Small e-commerce app: Google sign-in, product catalogue, cart, Stripe test check
 **Live:** https://moksha-ai-shop.vercel.app · **API:** https://moksha-ai-shop-api.onrender.com (Swagger: [/docs](https://moksha-ai-shop-api.onrender.com/docs))
 
 > Backend runs on Render free tier — first request after idle may take ~30-50s to wake.
-> This also affects Stripe webhooks: a delivery that hits a sleeping instance can time out and be retried by Stripe.
-> The success page calls `/payments/verify` (re-checks the session with Stripe), so orders still get marked `paid` even if the webhook is late.
+> This also affects Stripe webhooks: a delivery that hits a sleeping instance times out (Stripe waits ~10s) and is retried later.
+> Two mitigations: (1) `KEEP_ALIVE_URL` env makes the backend self-ping `/health` every 10 min so it never sleeps;
+> (2) the success page calls `/payments/verify` (re-checks the session with Stripe), so orders are marked `paid` even if the webhook is late.
 
 ## Stack
 - Frontend: React 19, TypeScript, Vite, Tailwind v4, shadcn/ui, react-router
@@ -64,6 +65,7 @@ Test card `4242 4242 4242 4242`, any future expiry, any CVC.
 | CURRENCY | `usd` default. `inr` needs India Stripe account |
 | GEMINI_API_KEY | from AI Studio |
 | FRONTEND_URL | for CORS + Stripe redirects |
+| KEEP_ALIVE_URL | prod only: public backend URL. Self-pings `/health` every 10 min to stop Render free tier sleeping (Stripe webhook timeouts). Empty locally |
 
 **frontend/.env**
 | Var | Purpose |

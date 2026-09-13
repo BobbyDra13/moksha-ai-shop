@@ -22,6 +22,10 @@ class Settings(BaseSettings):
 
     frontend_url: str = "http://localhost:5173"
 
+    # Render free tier sleeps after 15 min idle; Stripe webhooks then time out.
+    # Set to the public base URL to self-ping /health every 10 min. Empty = off.
+    keep_alive_url: str = ""
+
     @property
     def admin_email_list(self) -> list[str]:
         return [e.strip().lower() for e in self.admin_emails.split(",") if e.strip()]
