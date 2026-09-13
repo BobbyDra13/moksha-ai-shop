@@ -33,6 +33,7 @@ export interface Order {
   items: OrderItem[]
   total: number
   status: OrderStatus
+  failure_reason?: string | null
   created_at: string
 }
 

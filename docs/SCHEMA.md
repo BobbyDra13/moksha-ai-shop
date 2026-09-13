@@ -33,7 +33,8 @@ Database: `moksha_shop`. Three collections.
 | items | array | Snapshot: `{product_id, name, price, quantity}` |
 | total | number | Sum at creation time |
 | status | "pending" \| "paid" \| "failed" \| "cancelled" | |
-| stripe_session_id | string \| null | Index. Set when checkout starts |
+| stripe_session_id | string \| null | Index. Set when checkout starts; replaced on retry |
+| failure_reason | string \| null | Stripe decline message when status = failed |
 | created_at | datetime | |
 | updated_at | datetime | |
 

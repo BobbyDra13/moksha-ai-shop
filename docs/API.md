@@ -20,10 +20,10 @@ Interactive docs: `/docs` (Swagger).
 | GET | /orders/{id} | user | Own order (admin: any) |
 | GET | /orders | admin | All orders |
 | PATCH | /orders/{id}/status | admin | Body `{status}` |
-| POST | /payments/checkout/{order_id} | user (owner) | Creates Stripe session. Returns `{checkout_url}` |
-| POST | /payments/webhook | Stripe signature | Handles `checkout.session.completed` → paid; expired/failed → failed |
+| POST | /payments/checkout/{order_id} | user (owner) | Creates Stripe session for a pending/failed/cancelled order (re-checks stock, resets to pending). Returns `{checkout_url}` |
+| POST | /payments/webhook | Stripe signature | `checkout.session.completed` → paid; `async_payment_failed` → failed; `expired` → cancelled |
 | POST | /payments/verify/{order_id} | user (owner) | Re-checks Stripe session; marks paid if so. Used on success page |
-| POST | /payments/cancel/{order_id} | user (owner) | Marks pending order cancelled |
+| POST | /payments/cancel/{order_id} | user (owner) | Pending order → `failed` (+ `failure_reason`) if Stripe recorded a declined attempt, else `cancelled`. If Stripe says paid, marks paid |
 | POST | /chat | optional | Body `{message, history[]}`. Returns `{reply}`. Order tools need auth |
 
 ## Error codes

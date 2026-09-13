@@ -2,6 +2,8 @@ import { useEffect, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react"
 import { api, formatPrice } from "@/lib/api"
+import { payOrder } from "@/lib/checkout"
+import { toast } from "sonner"
 import type { Order } from "@/lib/types"
 import { useCart } from "@/store/CartContext"
 import { Button } from "@/components/ui/button"
@@ -27,7 +29,7 @@ export function CheckoutResultPage({ outcome }: { outcome: "success" | "cancel" 
         setOrder(o)
       })
       .catch((e) => setError(e.message))
-  }, [orderId, outcome])
+  }, [orderId, outcome, clear])
 
   if (error) return <p className="text-destructive">{error}</p>
   if (!order)
@@ -38,6 +40,22 @@ export function CheckoutResultPage({ outcome }: { outcome: "success" | "cancel" 
     )
 
   const paid = order.status === "paid"
+  const failed = order.status === "failed"
+  const heading = paid
+    ? "Payment successful"
+    : failed
+      ? "Payment failed"
+      : order.status === "cancelled"
+        ? "Payment cancelled"
+        : "Payment pending"
+
+  async function retry() {
+    try {
+      await payOrder(order!.id)
+    } catch (e) {
+      toast.error((e as Error).message)
+    }
+  }
 
   return (
     <div className="mx-auto max-w-md space-y-4 py-16 text-center">
@@ -46,15 +64,17 @@ export function CheckoutResultPage({ outcome }: { outcome: "success" | "cancel" 
       ) : (
         <XCircle className="mx-auto size-16 text-destructive" />
       )}
-      <h1 className="text-2xl font-bold">
-        {paid ? "Payment successful" : order.status === "cancelled" ? "Payment cancelled" : "Payment pending"}
-      </h1>
+      <h1 className="text-2xl font-bold">{heading}</h1>
+      {failed && order.failure_reason && (
+        <p className="text-sm text-destructive">{order.failure_reason}</p>
+      )}
       <p className="text-muted-foreground">
         Order <span className="font-mono">{order.id}</span> · {formatPrice(order.total)} ·{" "}
         <span className="capitalize">{order.status}</span>
       </p>
       <div className="flex justify-center gap-2">
-        <Button render={<Link to="/orders" />}>View orders</Button>
+        {!paid && <Button onClick={retry}>Try again</Button>}
+        <Button variant={paid ? "default" : "outline"} render={<Link to="/orders" />}>View orders</Button>
         <Button variant="outline" render={<Link to="/" />}>
           Continue shopping
         </Button>

@@ -39,7 +39,9 @@ flowchart LR
 
 **Auth.** Frontend gets a Google ID token via GIS. Backend verifies it with Google's public keys, upserts the user, and issues its own 7-day HS256 JWT containing `sub` + `role`. Every protected route runs `get_current_user`; admin routes run `require_admin`. Role lives in DB, not just the token, so role changes take effect on next request.
 
-**Payment.** Order is created `pending` after stock validation. Backend creates a Stripe Checkout session with `order_id` in metadata. Stripe redirects back. Two paths mark it paid: the signed webhook (source of truth) and `/payments/verify` on the success page (covers webhook lag; re-queries Stripe, never trusts the redirect). `mark_paid` is idempotent and only then decrements stock.
+**Payment.** Order is created `pending` after stock validation. Backend creates a Stripe Checkout session with `order_id` in metadata. Stripe redirects back. Two paths mark it paid: the signed webhook (source of truth) and `/payments/verify` on the success page (covers webhook lag; re-queries Stripe, never trusts the redirect). `mark_paid` is a single atomic status flip (`status != paid`), so webhook and verify can race safely; stock is decremented once.
+
+**Unpaid outcomes.** Stripe Checkout never redirects on a declined card (the customer retries on Stripe's page), so on the cancel redirect the backend inspects the session's PaymentIntent: a recorded `last_payment_error` → `failed` with the decline message; otherwise `cancelled`. Session expiry (24 h webhook) → `cancelled`. Any unpaid order can be resumed (`/payments/checkout` re-checks stock and opens a fresh session) or cancelled from the orders page.
 
 **AI agent.** LangChain `create_agent` + Gemini. Tools are created per request with the caller's `user_id` closed over, so order lookups are scoped and the model cannot query another user. Tools hit the service/DB layer directly — same process, no extra HTTP hop.
 

@@ -34,4 +34,14 @@ def parse_webhook(payload: bytes, signature: str) -> stripe.Event:
 
 
 def retrieve_session(session_id: str) -> stripe.checkout.Session:
-    return stripe.checkout.Session.retrieve(session_id)
+    return stripe.checkout.Session.retrieve(session_id, expand=["payment_intent"])
+
+
+def last_payment_error(session: stripe.checkout.Session) -> str | None:
+    """Decline message from the last attempt, if the customer tried a card that failed.
+    Checkout only creates the PaymentIntent once the customer submits, so None means no attempt."""
+    intent = session.payment_intent
+    if not intent or isinstance(intent, str):
+        return None
+    err = intent.last_payment_error
+    return err.message if err and err.message else None

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react"
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react"
 import type { CartItem, Product } from "@/lib/types"
 import { useAuth } from "@/auth/AuthContext"
 
@@ -88,9 +88,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) => prev.filter((i) => i.product.id !== productId))
   }
 
-  function clear() {
-    setItems([])
-  }
+  // stable identity so consumers can list it as an effect dependency
+  const clear = useCallback(() => setItems([]), [])
 
   const count = items.reduce((n, i) => n + i.quantity, 0)
   const total = items.reduce((n, i) => n + i.product.price * i.quantity, 0)

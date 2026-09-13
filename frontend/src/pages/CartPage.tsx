@@ -1,8 +1,9 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { Minus, Plus, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { api, formatPrice } from "@/lib/api"
+import { payOrder } from "@/lib/checkout"
 import type { Order } from "@/lib/types"
 import { useAuth } from "@/auth/AuthContext"
 import { useCart } from "@/store/CartContext"
@@ -16,6 +17,13 @@ export function CartPage() {
   const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
 
+  // Browser "back" from Stripe restores this page from bfcache with busy=true still set.
+  useEffect(() => {
+    const reset = () => setBusy(false)
+    window.addEventListener("pageshow", reset)
+    return () => window.removeEventListener("pageshow", reset)
+  }, [])
+
   /** Create order -> ask backend for Stripe URL -> redirect. */
   async function checkout() {
     if (!user) {
@@ -27,11 +35,8 @@ export function CartPage() {
       const order = await api.post<Order>("/orders", {
         items: items.map((i) => ({ product_id: i.product.id, quantity: i.quantity })),
       })
-      const { checkout_url } = await api.post<{ checkout_url: string }>(
-        `/payments/checkout/${order.id}`,
-      )
       // cart is cleared on the success page, so a cancelled payment keeps it
-      window.location.href = checkout_url
+      await payOrder(order.id)
     } catch (e) {
       toast.error((e as Error).message)
       setBusy(false)

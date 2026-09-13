@@ -78,7 +78,9 @@ Test card `4242 4242 4242 4242`, any future expiry, any CVC.
 - [x] Protected customer routes (`/orders`, `/checkout/*`) and admin route (`/admin`)
 - [x] Product list, product detail, add to cart, quantity capped at stock
 - [x] Order creation with server-side stock validation and price snapshot
-- [x] Stripe Checkout session, success/cancel handling, signed webhook, backend verification, stock decrement on paid
+- [x] Stripe Checkout session, signed webhook, backend verification, stock decrement on paid
+- [x] Failed vs cancelled payments (decline reason stored + shown), retry / cancel unpaid orders from *My orders*
+- [x] Per-account cart (guest cart merged on login)
 - [x] Customer sees only own orders; admin manages products and all orders
 - [x] Backend-enforced RBAC (401/403), not just UI hiding
 - [x] AI support agent answers price / availability / order status via tools
@@ -86,6 +88,7 @@ Test card `4242 4242 4242 4242`, any future expiry, any CVC.
 ## Business rules
 - Stock is validated at order creation and decremented only when payment is confirmed (`paid`). `mark_paid` is idempotent.
 - Order items snapshot name + price, so later product edits do not alter history.
+- Payment outcomes: **paid** (webhook or verify), **failed** (customer tried a card and Stripe recorded a decline — the decline message is stored as `failure_reason`), **cancelled** (customer left Checkout without paying, or the session expired). Unpaid orders can be resumed from *My orders* (stock re-checked) or cancelled.
 - The chat agent's order tools are bound to the logged-in user id; it cannot read other users' orders.
 - Cart is stored per account (`shop_cart:<userId>`) plus a guest cart. Logging out switches to the guest cart; logging in merges the guest cart into the account cart. A shared browser never shows another person's items.
 

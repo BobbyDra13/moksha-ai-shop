@@ -49,6 +49,15 @@ async def create_order(user_id: ObjectId, items: list[CartItemIn]) -> dict:
     return doc
 
 
+async def assert_in_stock(order: dict) -> None:
+    """Re-check stock for an existing order (used before re-opening checkout)."""
+    for item in order["items"]:
+        product = await products.find_one({"_id": to_object_id(item["product_id"])})
+        if product is None or product["stock"] < item["quantity"]:
+            left = product["stock"] if product else 0
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Only {left} left for {item['name']}")
+
+
 async def set_status(
     order_id: ObjectId,
     new_status: str,

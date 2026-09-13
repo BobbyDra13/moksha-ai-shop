@@ -29,6 +29,7 @@ class OrderOut(BaseModel):
     total: float
     status: OrderStatus
     stripe_session_id: str | None = None
+    failure_reason: str | None = None  # Stripe decline message, set when status == failed
     created_at: datetime
     updated_at: datetime
 
