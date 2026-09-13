@@ -49,17 +49,35 @@ async def create_order(user_id: ObjectId, items: list[CartItemIn]) -> dict:
     return doc
 
 
-async def set_status(order_id: ObjectId, new_status: str, extra: dict | None = None) -> None:
+async def set_status(
+    order_id: ObjectId,
+    new_status: str,
+    extra: dict | None = None,
+    only_from: str | None = None,
+) -> bool:
+    """Update status. `only_from` guards the transition (e.g. pending -> failed
+    must not overwrite paid/cancelled). Returns True if a doc was changed."""
     changes = {"status": new_status, "updated_at": datetime.now(timezone.utc)}
     if extra:
         changes.update(extra)
-    await orders.update_one({"_id": order_id}, {"$set": changes})
+    query: dict = {"_id": order_id}
+    if only_from:
+        query["status"] = only_from
+    result = await orders.update_one(query, {"$set": changes})
+    return result.modified_count == 1
 
 
 async def mark_paid(order_id: ObjectId) -> None:
-    """Called from Stripe webhook. Idempotent: skips if already paid."""
-    order = await orders.find_one({"_id": order_id})
-    if order is None or order["status"] == "paid":
+    """Called from Stripe webhook and /payments/verify. Idempotent.
+
+    The status flip is a single atomic update filtered on status != paid, so
+    if webhook and verify race, only one caller wins and stock is decremented once.
+    """
+    order = await orders.find_one_and_update(
+        {"_id": order_id, "status": {"$ne": "paid"}},
+        {"$set": {"status": "paid", "updated_at": datetime.now(timezone.utc)}},
+    )
+    if order is None:  # missing or already paid
         return
 
     # Decrement stock now that money is confirmed
@@ -68,4 +86,3 @@ async def mark_paid(order_id: ObjectId) -> None:
             {"_id": to_object_id(item["product_id"])},
             {"$inc": {"stock": -item["quantity"]}},
         )
-    await set_status(order_id, "paid")

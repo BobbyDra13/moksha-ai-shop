@@ -44,7 +44,8 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(alias=
     if event["type"] == "checkout.session.completed" and session.get("payment_status") == "paid":
         await order_service.mark_paid(to_object_id(order_id))
     elif event["type"] in ("checkout.session.expired", "checkout.session.async_payment_failed"):
-        await order_service.set_status(to_object_id(order_id), "failed")
+        # Only a still-pending order becomes failed; never overwrite paid/cancelled
+        await order_service.set_status(to_object_id(order_id), "failed", only_from="pending")
 
     return {"received": True}
 
@@ -72,5 +73,5 @@ async def cancel_payment(order_id: str, user: dict = Depends(get_current_user)):
     if order is None or order["user_id"] != user["_id"]:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Order not found")
     if order["status"] == "pending":
-        await order_service.set_status(order["_id"], "cancelled")
+        await order_service.set_status(order["_id"], "cancelled", only_from="pending")
     return serialize(await orders.find_one({"_id": order["_id"]}))

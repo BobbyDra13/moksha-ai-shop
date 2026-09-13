@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 
 export function CartPage() {
-  const { items, setQuantity, remove, total, clear } = useCart()
+  const { items, setQuantity, remove, total } = useCart()
   const { user } = useAuth()
   const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
@@ -30,7 +30,7 @@ export function CartPage() {
       const { checkout_url } = await api.post<{ checkout_url: string }>(
         `/payments/checkout/${order.id}`,
       )
-      clear()
+      // cart is cleared on the success page, so a cancelled payment keeps it
       window.location.href = checkout_url
     } catch (e) {
       toast.error((e as Error).message)

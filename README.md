@@ -5,11 +5,13 @@ Small e-commerce app: Google sign-in, product catalogue, cart, Stripe test check
 **Live:** https://moksha-ai-shop.vercel.app · **API:** https://moksha-ai-shop-api.onrender.com (Swagger: [/docs](https://moksha-ai-shop-api.onrender.com/docs))
 
 > Backend runs on Render free tier — first request after idle may take ~30-50s to wake.
+> This also affects Stripe webhooks: a delivery that hits a sleeping instance can time out and be retried by Stripe.
+> The success page calls `/payments/verify` (re-checks the session with Stripe), so orders still get marked `paid` even if the webhook is late.
 
 ## Stack
 - Frontend: React 19, TypeScript, Vite, Tailwind v4, shadcn/ui, react-router
 - Backend: Python 3.12, FastAPI, Motor (MongoDB), python-jose (JWT), Stripe SDK
-- AI: LangChain 1.x agent + Gemini 2.5 Flash, 4 tools reading the DB
+- AI: LangChain 1.x agent + Gemini (gemini-3.6-flash, configurable), 4 tools reading the DB
 - Auth: Google Identity Services → backend verification → own JWT
 - Deploy: Vercel (FE) + Render (BE) + MongoDB Atlas
 

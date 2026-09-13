@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom"
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react"
 import { api, formatPrice } from "@/lib/api"
 import type { Order } from "@/lib/types"
+import { useCart } from "@/store/CartContext"
 import { Button } from "@/components/ui/button"
 
 /**
@@ -15,12 +16,16 @@ export function CheckoutResultPage({ outcome }: { outcome: "success" | "cancel" 
   const orderId = params.get("order_id")
   const [order, setOrder] = useState<Order | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const { clear } = useCart()
 
   useEffect(() => {
     if (!orderId) return
     api
       .post<Order>(`/payments/${outcome === "success" ? "verify" : "cancel"}/${orderId}`)
-      .then(setOrder)
+      .then((o) => {
+        if (o.status === "paid") clear()
+        setOrder(o)
+      })
       .catch((e) => setError(e.message))
   }, [orderId, outcome])
 

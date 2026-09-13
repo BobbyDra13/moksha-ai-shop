@@ -1,8 +1,10 @@
-"""AI support agent. LangChain agent + Gemini + 3 tools that read our DB.
+"""AI support agent. LangChain agent + Gemini + 4 tools that read our DB.
 
 Tools are built per-request so the caller's user_id is baked in.
 That way the agent can never read another customer's orders.
 """
+
+import re
 
 from bson import ObjectId
 from langchain.agents import create_agent
@@ -36,7 +38,7 @@ def _make_tools(user_id: ObjectId | None):
     @tool
     async def get_product_info(name: str) -> str:
         """Get price, stock and description for a product by name (partial match ok)."""
-        doc = await products.find_one({"name": {"$regex": name, "$options": "i"}})
+        doc = await products.find_one({"name": {"$regex": re.escape(name), "$options": "i"}})
         if doc is None:
             return f"No product matching '{name}'."
         return (

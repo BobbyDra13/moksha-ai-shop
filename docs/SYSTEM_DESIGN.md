@@ -16,7 +16,7 @@ flowchart LR
     API[REST routers\nauth / products / orders / payments / chat]
     RBAC[deps.py\nJWT verify + role check]
     SVC[services\norders · stripe · agent]
-    AGENT[LangChain agent\nGemini 2.5 Flash\n4 tools]
+    AGENT[LangChain agent\nGemini (gemini-3.6-flash, configurable)\n4 tools]
   end
 
   DB[(MongoDB Atlas\nusers · products · orders)]
